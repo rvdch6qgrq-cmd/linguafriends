@@ -94,4 +94,4 @@ $('#my-adult').addEventListener('change',()=>{if(!$('#my-adult').checked)$('#my-
 $('#demo-profile-form').addEventListener('submit',e=>{e.preventDefault();if($('#my-public').checked&&!$('#my-adult').checked){alert('Подтверди 18+.');return}demoProfile={name:$('#my-name').value.trim()||'Вы',native:$('#my-native').value,target:$('#my-target').value,intro:$('#my-intro').value.trim(),adult:$('#my-adult').checked,visible:$('#my-public').checked};save();$('#native-filter').value=demoProfile.target;renderSearch();alert('Анкета сохранена в этом браузере. Демо-профиль не доступен другим людям.')});
 $('#native-filter').value=demoProfile.target;$('#my-public').disabled=!$('#my-adult').checked;
 renderContacts();renderRequests();renderSearch();renderMsgs();renderPhrases();renderFlash();if(window.innerWidth<641){go('chat',false)}
-</script></body></html>
+</script><script>if ('serviceWorker' in navigator && location.protocol === 'https:') { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }</script></body></html>
