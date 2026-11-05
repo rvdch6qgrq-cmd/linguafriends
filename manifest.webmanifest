@@ -1,0 +1,19 @@
+{
+  "name": "LinguaFriends — языковое общение",
+  "short_name": "LinguaFriends",
+  "description": "Демонстрация общения и изучения языков",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f5fc",
+  "theme_color": "#7962df",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
