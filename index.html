@@ -26,9 +26,12 @@
 .public-profile textarea{resize:vertical}.privacy-note{font-size:11px;color:#90869f;line-height:1.6}.new-friend-list{margin-top:8px}
 @media(max-width:790px){.search-grid{grid-template-columns:1fr}.filter-box{align-items:stretch}}
 @media(max-width:640px){.request-card-demo{flex-wrap:wrap}.filter-box select{width:100%}.search-grid{grid-template-columns:1fr}.request-card-demo .request-name{min-width:100px}}
+
+/* Materials shared for language practice */
+.material-list{display:grid;gap:15px;margin:24px 0 30px}.material-card{border:1px solid #e9e4f5;border-radius:20px;background:#fff;padding:19px;box-shadow:0 7px 20px #56468e08}.material-card h3{margin:10px 0;font-size:18px}.material-card p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px}.material-kicker{font-size:12px;color:#7f6fb2;font-weight:700}.material-translation{background:#f6f3ff;border-left:3px solid #7962df;padding:11px;border-radius:9px;margin:10px 0;font-size:13px;line-height:1.6}.material-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:15px}.material-actions select{background:#f6f4fc;border:1px solid #e0daf1;border-radius:9px;padding:9px;color:#665599;font:inherit;font-size:12px}.material-actions audio{width:100%;max-width:320px}.material-form{display:grid;gap:11px;background:#f8f6fe;padding:19px;border:1px solid #eee7fa;border-radius:20px;margin-bottom:20px}.material-form label{display:block;font-size:12px;color:#71678f;font-weight:700}.material-form input,.material-form select,.material-form textarea{width:100%;padding:12px;border-radius:11px;border:1px solid #e6e0f2;background:#fff;color:#29283c;font:inherit;font-size:14px}.material-form textarea{resize:vertical}.material-form .primary{justify-self:start}.material-notice{font-size:12px;color:#756a90;line-height:1.7;background:#f2edff;padding:12px 14px;border-radius:13px}.material-empty{font-size:13px;color:#827891}.material-actions .secondary-button{font-size:12px}.material-caption{color:#988ba9;font-size:11px;line-height:1.55}.material-form .field-hidden{display:none}@media(max-width:640px){.mobile-nav{overflow-x:auto;justify-content:flex-start;gap:5px;scrollbar-width:none}.mobile-nav button{flex:0 0 67px;min-width:67px}.mobile-nav::-webkit-scrollbar{display:none}.material-actions audio{max-width:100%}}
 </style></head><body><div class="app-shell">
 <aside class="sidebar" id="sidebar"><div class="brand"><div class="brand-mark">🌍</div><div><strong>LinguaFriends</strong><small>talk • learn • connect</small></div></div><div class="sidebar-profile"><div class="avatar own">А</div><div class="who"><b>Мой профиль</b><small>🌸 Учим языки вместе</small></div></div>
-<nav class="sidebar-nav"><button data-page="chat" class="active">💬 Мои друзья</button><button data-page="discover">🌍 Найти друга</button><button data-page="settings">⚙️ Профиль</button><button data-page="words">📖 Мой словарик <span id="words-count">2</span></button><button data-page="practice">✨ Повторение</button></nav><div class="chat-list"><div class="section-heading"><b>Друзья</b></div><div id="demo-contact-list" class="new-friend-list"></div></div>
+<nav class="sidebar-nav"><button data-page="chat" class="active">💬 Мои друзья</button><button data-page="discover">🌍 Найти друга</button><button data-page="materials">🎁 От друзей</button><button data-page="settings">⚙️ Профиль</button><button data-page="words">📖 Мой словарик <span id="words-count">2</span></button><button data-page="practice">✨ Повторение</button></nav><div class="chat-list"><div class="section-heading"><b>Друзья</b></div><div id="demo-contact-list" class="new-friend-list"></div></div>
 <div class="sidebar-bottom"><div class="tip">✨ <p>Нажми на значок книги под сообщением, чтобы добавить его в свой словарик.</p></div></div></aside>
 <main class="content" id="content"><div class="demo-banner"><strong>ДЕМОНСТРАЦИЯ</strong> · Сообщения не отправляются реальным людям. Для этого нужна настройка облачного сервиса.</div>
 <section class="panel-page active" data-panel="chat"><header class="chat-header"><button class="icon-btn mobile-back-preview" id="back-chat">❮</button><div class="avatar person-avatar">E</div><div class="chat-title"><b id="demo-chat-name">Emma · English</b><small>🌍 Языковой напарник</small></div><div class="top-right"><button id="demo-reply" class="demo-reply">💬 Демо-ответ друга</button></div></header><div id="msgs" class="message-area"></div><div class="composer-area"><div id="record-hint" class="record-hint">🔴 Идёт запись голосового… Нажми ■ для отправки</div><form class="composer" id="send-form"><input id="message" placeholder="Напиши сообщение на английском…" maxlength="3000" autocomplete="off"><button type="button" id="record" class="mic-button" title="Записать голосовое">🎙️</button><button type="submit" class="send-button" title="Отправить">➤</button></form><div class="demo-inline">Голосовые сохраняются только до перезагрузки страницы. Микрофон может быть недоступен при открытии локального файла.</div></div></section>
@@ -38,9 +41,22 @@
 <h3 class="sub-title">✨ Подходящие собеседники</h3><div id="demo-discovery-list" class="search-grid"></div><p class="privacy-note">Демонстрационные анкеты вымышлены. Настоящая переписка и поиск появятся после подключения сервера и регистрации реальных пользователей.</p>
 </div></section>
 <section class="panel-page" data-panel="settings"><div class="phrases-panel"><div class="page-heading"><span class="page-icon">⚙️</span><div><span class="eyebrow">MY PROFILE</span><h2>Мой профиль</h2></div></div><p class="discover-intro">Выбирай язык для практики и решай, можно ли находить тебя в поиске.</p><div class="settings-demo"><form id="demo-profile-form" class="public-profile"><label for="my-name">Имя в приложении</label><input id="my-name" maxlength="60" value="Вы"><label for="my-native">Мой родной язык</label><select id="my-native"><option value="ru">Русский</option><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option></select><label for="my-target">Я изучаю</label><select id="my-target"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option><option value="it">Italiano</option><option value="ru">Русский</option></select><label for="my-intro">Немного обо мне</label><textarea id="my-intro" maxlength="180" rows="3" placeholder="Люблю путешествия, музеи и языки..."></textarea><label class="check-row"><input id="my-adult" type="checkbox" checked> Мне исполнилось 18 лет</label><label class="check-row"><input id="my-public" type="checkbox"> Показывать мою анкету другим пользователям</label><p class="privacy-note">E-mail, код приглашения и местоположение не показываются в каталоге. Это демоверсия: настройки сохраняются только в браузере.</p><button class="primary" type="submit">Сохранить анкету</button></form></div></div></section>
+<section class="panel-page" data-panel="materials"><div class="phrases-panel">
+<div class="page-heading"><span class="page-icon">🎁</span><div><span class="eyebrow">SHARED FOR YOU</span><h2>Материалы от друзей</h2></div></div>
+<p class="discover-intro">Здесь друзья смогут оставлять фразы с произношением, короткие тексты и ссылки на мультфильмы с субтитрами. Ты сможешь переслушивать, переводить и сохранять выражения.</p>
+<p class="material-notice"><strong>Пока демонстрация.</strong> Ни один настоящий друг не подключён. Примеры вымышленные, а новые материалы, которые ты добавишь, будут твоими черновиками в этом браузере, а не сообщениями друзьям. Записанное аудио пропадает после обновления страницы.</p>
+<h3 class="sub-title">📥 Примеры и мои черновики</h3><div id="materials-list" class="material-list"></div>
+<h3 class="sub-title">✏️ Создать материал</h3>
+<form id="material-form" class="material-form">
+<label for="material-kind">Что добавляем?</label><select id="material-kind"><option value="phrase">Фразу для произношения</option><option value="text">Текст для чтения</option><option value="video">Ссылку на мультфильм или видео</option></select>
+<label for="material-title">Название</label><input id="material-title" maxlength="100" required placeholder="Например: Фразы в кафе">
+<div id="material-text-fields"><label for="material-body">Фраза или текст</label><textarea id="material-body" rows="4" maxlength="3000" placeholder="Could you say that again, please?"></textarea><label for="material-translation">Перевод или пояснение (необязательно)</label><textarea id="material-translation" rows="2" maxlength="3000" placeholder="Повтори, пожалуйста."></textarea></div>
+<div id="material-video-fields" class="field-hidden"><label for="material-url">Ссылка на видео</label><input id="material-url" type="url" placeholder="https://..." inputmode="url"><p class="material-caption">Используй официальную ссылку на мультфильм, а не загружай чужое видео в приложение.</p></div>
+<button type="submit" class="primary">＋ Сохранить черновик</button></form>
+</div></section>
 <section class="panel-page" data-panel="words"><div class="phrases-panel"><div class="page-heading"><span class="page-icon">📖</span><div><span class="eyebrow">MY PHRASES</span><h2>Мой словарик</h2></div></div><p class="lead">Сохраняй новые выражения из переписки и добавляй собственный перевод.</p><form class="simple-form" id="phrase-form"><label>Фраза на иностранном языке</label><input id="phrase-source" required placeholder="That's amazing!"><label>Перевод</label><input id="phrase-translation" placeholder="Это потрясающе!"><button class="primary">＋ Добавить в словарик</button></form><div id="phrase-list"></div></div></section>
 <section class="panel-page" data-panel="practice"><div class="phrases-panel"><div class="page-heading"><span class="page-icon">✨</span><div><span class="eyebrow">LEARN EVERY DAY</span><h2>Повторение фраз</h2></div></div><p class="lead">Вспомни перевод, а затем нажми на карточку, чтобы проверить себя.</p><button class="flash" id="flash"><small>Нажми, чтобы показать перевод</small><span id="flash-main">That sounds lovely!</span><small id="flash-hint">👆 Нажми на карточку</small></button><button class="primary big-next" id="next">Следующая фраза →</button></div></section>
-<nav class="mobile-nav"><button data-page="chat">💬<span>Чаты</span></button><button data-page="discover">🌍<span>Поиск</span></button><button data-page="settings">⚙️<span>Профиль</span></button><button data-page="words">📖<span>Словарик</span></button><button data-page="practice">✨<span>Практика</span></button></nav></main></div>
+<nav class="mobile-nav"><button data-page="chat">💬<span>Чаты</span></button><button data-page="discover">🌍<span>Поиск</span></button><button data-page="materials">🎁<span>Материалы</span></button><button data-page="settings">⚙️<span>Профиль</span></button><button data-page="words">📖<span>Словарик</span></button><button data-page="practice">✨<span>Практика</span></button></nav></main></div>
 <script>
 const seeded=[{id:'m1',chat:'emma',me:false,type:'text',body:'Hey! How was your weekend? 😊',at:'10:15'},{id:'m2',chat:'emma',me:true,type:'text',body:'It was great! I visited a museum.',at:'10:16'},{id:'m3',chat:'emma',me:false,type:'text',body:'That sounds lovely! What did you see?',at:'10:18'}];
 const seedPhrases=[{id:'p1',source:'That sounds lovely!',translation:'Звучит замечательно!'},{id:'p2',source:'How was your weekend?',translation:'Как прошли твои выходные?'}];
@@ -93,5 +109,70 @@ $('#my-name').value=demoProfile.name;$('#my-native').value=demoProfile.native;$(
 $('#my-adult').addEventListener('change',()=>{if(!$('#my-adult').checked)$('#my-public').checked=false;$('#my-public').disabled=!$('#my-adult').checked});
 $('#demo-profile-form').addEventListener('submit',e=>{e.preventDefault();if($('#my-public').checked&&!$('#my-adult').checked){alert('Подтверди 18+.');return}demoProfile={name:$('#my-name').value.trim()||'Вы',native:$('#my-native').value,target:$('#my-target').value,intro:$('#my-intro').value.trim(),adult:$('#my-adult').checked,visible:$('#my-public').checked};save();$('#native-filter').value=demoProfile.target;renderSearch();alert('Анкета сохранена в этом браузере. Демо-профиль не доступен другим людям.')});
 $('#native-filter').value=demoProfile.target;$('#my-public').disabled=!$('#my-adult').checked;
-renderContacts();renderRequests();renderSearch();renderMsgs();renderPhrases();renderFlash();if(window.innerWidth<641){go('chat',false)}
+
+/* Language-learning gifts: examples and local drafts only. No inter-device delivery yet. */
+const seedMaterials=[
+{id:'sample-phrase',kind:'phrase',from:'Emma · пример',title:'Вежливая просьба',body:'Could you say that again, please?',translation:'Не мог(ла) бы ты повторить, пожалуйста?',sample:true},
+{id:'sample-text',kind:'text',from:'Lily · пример',title:'A day at the park',body:'On Saturday I went to the park with my sister. The weather was sunny, so we brought some sandwiches. We sat near the lake and watched the ducks. It was a peaceful afternoon.',translation:'В субботу я ходила в парк с сестрой. Было солнечно, поэтому мы взяли бутерброды. Мы сидели у озера и наблюдали за утками. Это был спокойный день.',sample:true},
+{id:'sample-video',kind:'video',from:'Emma · пример',title:'Мультфильм с субтитрами',body:'Здесь друг сможет поделиться ссылкой на мультфильм или короткое видео, а ты — сохранить его для практики.',url:'',sample:true}
+];
+let materials=fromStore('lf-materials-v1',seedMaterials);
+const materialRecordings=new Map(); let materialRecorder=null,materialStream=null,recordingMaterial=null;
+function saveMaterials(){try{localStorage.setItem('lf-materials-v1',JSON.stringify(materials))}catch(e){alert('Не удалось сохранить. Возможно, заполнено хранилище браузера.');}}
+function addMaterialBtn(parent,label,callback){const btn=text(parent,'button',label,'secondary-button');btn.type='button';btn.addEventListener('click',callback);return btn}
+function renderMaterials(){
+ const box=$('#materials-list');box.textContent='';
+ if(!materials.length){text(box,'p','Пока материалов нет. Создай первый черновик.','material-empty');return}
+ for(const m of materials){
+  const card=document.createElement('article');card.className='material-card';
+  text(card,'div',(m.kind==='phrase'?'🎙️ Фраза':m.kind==='text'?'📖 Текст':'🎬 Видео')+' · '+m.from,'material-kicker');
+  text(card,'h3',m.title);
+  if(m.body)text(card,'p',m.body);
+  if(m.translation)text(card,'div',m.translation,'material-translation');
+  if(m.kind==='video'){
+   if(m.url){const link=text(card,'a','▶ Открыть видео на сайте автора','secondary-button');link.href=m.url;link.target='_blank';link.rel='noopener noreferrer';}
+   else text(card,'p','В этом примере ссылки пока нет. Добавь собственную ссылку ниже.','material-caption');
+  } else {
+   const buttons=document.createElement('div');buttons.className='material-actions';card.append(buttons);
+   const speed=document.createElement('select');speed.setAttribute('aria-label','Скорость воспроизведения');for(const [v,label] of [['1','1×'],['0.75','0,75×']]){const option=document.createElement('option');option.value=v;option.textContent=label;speed.append(option)}
+   const audioURL=materialRecordings.get(m.id);
+   if(audioURL){const audio=document.createElement('audio');audio.controls=true;audio.src=audioURL;buttons.append(audio);speed.addEventListener('change',()=>{audio.playbackRate=Number(speed.value)});}
+   else if('speechSynthesis' in window){addMaterialBtn(buttons,'🔊 Озвучить (робот)',()=>{window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(m.body||'');utterance.lang=(demoProfile.target||'en')==='ru'?'ru-RU':(demoProfile.target||'en')+'-'+((demoProfile.target||'en')==='en'?'GB':'');utterance.rate=Number(speed.value);window.speechSynthesis.speak(utterance)});}
+   buttons.append(speed);
+   addMaterialBtn(buttons,'🌐 Перевести',()=>window.open('https://translate.google.com/?sl=auto&tl=ru&text='+encodeURIComponent(m.body||'')+'&op=translate','_blank','noopener,noreferrer'));
+   addMaterialBtn(buttons,'📖 В словарик',()=>{let piece=m.kind==='text'?window.prompt('Какую фразу из текста сохраним?',m.body.slice(0,130)):m.body;if(!piece||!piece.trim())return;$('#phrase-source').value=piece.trim();$('#phrase-translation').value=m.kind==='phrase'?(m.translation||''):'';go('words')});
+   if(!m.sample)addMaterialBtn(buttons,recordingMaterial===m.id?'■ Остановить запись':'🎙️ Записать голос',()=>recordMaterialVoice(m.id));
+  }
+  if(!m.sample){const footer=document.createElement('div');footer.className='material-actions';
+   addMaterialBtn(footer,'🗑 Удалить черновик',()=>{if(!confirm('Удалить черновик?'))return;materials=materials.filter(x=>x.id!==m.id);saveMaterials();renderMaterials();});
+   card.append(footer);
+  }
+  box.append(card);
+ }
+}
+async function recordMaterialVoice(id){
+ if(materialRecorder?.state==='recording'){if(recordingMaterial===id)materialRecorder.stop();else alert('Сначала останови предыдущую запись.');return}
+ if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder){alert('Микрофон недоступен. Открой сайт по HTTPS в Safari.');return}
+ try{
+  materialStream=await navigator.mediaDevices.getUserMedia({audio:true});
+  const supported=['audio/mp4','audio/webm;codecs=opus','audio/webm'].find(x=>MediaRecorder.isTypeSupported(x));
+  materialRecorder=new MediaRecorder(materialStream,supported?{mimeType:supported}:{});
+  recordingMaterial=id;const chunks=[];
+  materialRecorder.ondataavailable=e=>{if(e.data?.size)chunks.push(e.data)};
+  materialRecorder.onstop=()=>{materialStream?.getTracks().forEach(t=>t.stop());recordingMaterial=null;const blob=new Blob(chunks,{type:materialRecorder.mimeType||'audio/mp4'});if(blob.size){const prev=materialRecordings.get(id);if(prev)URL.revokeObjectURL(prev);materialRecordings.set(id,URL.createObjectURL(blob))}renderMaterials();};
+  materialRecorder.start();renderMaterials();setTimeout(()=>{if(materialRecorder?.state==='recording'&&recordingMaterial===id)materialRecorder.stop()},60000);
+ }catch(e){materialStream?.getTracks().forEach(t=>t.stop());recordingMaterial=null;alert('Не удалось записать звук: '+e.message)}
+}
+function toggleMaterialForm(){const video=$('#material-kind').value==='video';$('#material-video-fields').classList.toggle('field-hidden',!video);$('#material-text-fields').classList.toggle('field-hidden',video)}
+$('#material-kind').addEventListener('change',toggleMaterialForm);
+$('#material-form').addEventListener('submit',e=>{
+ e.preventDefault();const kind=$('#material-kind').value,title=$('#material-title').value.trim(),body=$('#material-body').value.trim(),translation=$('#material-translation').value.trim(),rawURL=$('#material-url').value.trim();
+ if(!title){alert('Введи название.');return} let url='';
+ if(kind==='video'){try{const candidate=new URL(rawURL);if(candidate.protocol!=='https:')throw Error();url=candidate.href}catch{alert('Добавь корректную ссылку, начинающуюся с https://');return}}
+ else if(!body){alert('Напиши фразу или текст.');return}
+ materials.unshift({id:newId(),kind,title,from:'Вы · черновик',body:kind==='video'?'':body,translation:kind==='video'?'':translation,url,sample:false});
+ saveMaterials();$('#material-form').reset();toggleMaterialForm();renderMaterials();alert('Сохранено в этом браузере. Это черновик: другу материал пока не отправляется.');
+});
+
+renderContacts();renderRequests();renderSearch();renderMsgs();renderPhrases();renderFlash();renderMaterials();if(window.innerWidth<641){go('chat',false)}
 </script><script>if ('serviceWorker' in navigator && location.protocol === 'https:') { window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {})); }</script></body></html>
