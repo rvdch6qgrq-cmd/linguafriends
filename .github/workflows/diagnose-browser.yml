@@ -1,0 +1,51 @@
+name: Diagnose LinguaFriends browser startup
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'webapp/**'
+      - '.github/workflows/diagnose-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install project and browser test
+        run: |
+          cd webapp
+          npm install --no-audit --no-fund
+          npm install --no-save --no-package-lock playwright@1.56.1
+          npx playwright install chromium
+      - name: Build demo and start server
+        run: |
+          cd webapp
+          npm run build -- --base=/
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/linguafriends-vite.log 2>&1 &
+          for i in $(seq 1 40); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break || sleep 1; done
+      - name: Open app in Chromium and collect runtime errors
+        run: |
+          cd webapp
+          node --input-type=module <<'JS'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true});
+          const page = await browser.newPage({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:2});
+          const errors=[];
+          page.on('pageerror',e=>{errors.push(e.stack||e.message);console.error('BROWSER_PAGE_ERROR:',e.stack||e.message)});
+          page.on('console',m=>{if(m.type()==='error') console.error('BROWSER_CONSOLE_ERROR:',m.text())});
+          await page.goto('http://127.0.0.1:4173/',{waitUntil:'networkidle'});
+          await page.waitForTimeout(1000);
+          const text=await page.locator('body').innerText();
+          console.log('PAGE TEXT FIRST 800:', text.slice(0,800));
+          await page.screenshot({path:'/tmp/linguafriends-startup.png',fullPage:true});
+          await browser.close();
+          if (errors.length || /Не удалось запустить приложение/.test(text) || !/LinguaFriends/i.test(text)){
+            console.error('DIAGNOSIS FAILED',errors);
+            process.exitCode=1;
+          } else console.log('PASS: app rendered without uncaught runtime errors');
+          JS
