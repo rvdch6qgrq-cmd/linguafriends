@@ -6,6 +6,9 @@ on:
       - 'webapp/**'
       - '.github/workflows/publish-app.yml'
   workflow_dispatch:
+concurrency:
+  group: linguafriends-app-publish
+  cancel-in-progress: true
 permissions:
   contents: write
 jobs:
@@ -34,14 +37,14 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           mkdir -p /tmp/linguafriends-build
           cp -a webapp/dist/. /tmp/linguafriends-build/
-          mkdir -p app
-          cp -a /tmp/linguafriends-build/. app/
-          git add app
-          if git diff --cached --quiet; then exit 0; fi
-          git commit -m "Deploy real-chat app"
           for attempt in 1 2 3 4 5; do
             git fetch origin main
-            git rebase origin/main
+            git reset --hard origin/main
+            mkdir -p app
+            cp -a /tmp/linguafriends-build/. app/
+            git add app
+            if git diff --cached --quiet; then exit 0; fi
+            git commit -m "Deploy real-chat app"
             if git push origin HEAD:main; then exit 0; fi
             sleep 4
           done
