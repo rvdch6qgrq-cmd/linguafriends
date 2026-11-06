@@ -42,3 +42,22 @@
 @media(max-width:640px){.partner-grid{grid-template-columns:1fr}.discovery-page{padding-bottom:30px}.filter-row{align-items:stretch}.filter-row select{flex:1}.request-actions{padding-left:55px}}
 
 .voice-player-row{display:flex;align-items:center;gap:7px;max-width:100%}.speed-button{border:1px solid #d9cfeb;border-radius:9px;background:#fff;color:#674bb5;padding:7px 9px;font-size:11px;font-weight:800;flex:0 0 auto}.mine .speed-button{background:#ffffff2a;color:#fff;border-color:#ffffff55}
+
+
+/* Shared learning materials */
+.gifts-page{overflow-y:auto;flex:1}
+.gift-warning{padding:13px;border-radius:14px;background:#f0eaff;color:#765bb5;font-size:12px;line-height:1.5}
+.gift-label,.gift-form label{font-size:12px;font-weight:700;color:#73688d;display:block}
+.gift-select,.gift-form select,.gift-form input,.gift-form textarea{width:100%;padding:12px;border:1px solid #e6dff2;border-radius:12px;background:white;color:#322c47;font:inherit;font-size:14px}
+.gift-select{margin:9px 0 22px}.gift-list{display:grid;gap:13px;margin-bottom:25px}
+.gift-card{border:1px solid #e9e4f5;border-radius:17px;padding:18px;background:white}
+.gift-card small{color:#8473b4}.gift-card h3{margin:10px 0;font-size:17px}
+.gift-card p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.65}
+.gift-translation{padding:12px;background:#f6f2ff;border-left:3px solid #7962df;border-radius:9px;font-size:13px;line-height:1.6}
+.gift-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.gift-audio{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.gift-audio audio{width:min(260px,100%);max-width:100%}
+.gift-form{display:grid;gap:10px;padding:19px;background:#f9f7fe;border:1px solid #eee9fa;border-radius:18px}
+.gift-form textarea{resize:vertical}.gift-form .primary{justify-self:start}
+.gift-voice{margin-top:20px;padding:19px;border:1px solid #e9e4f5;border-radius:17px}
+.gift-error{color:#b72b46;font-size:13px}
+@media(max-width:640px){.mobile-bottom-nav{overflow-x:auto;justify-content:flex-start;gap:5px}.mobile-bottom-nav button{flex:0 0 66px;min-width:66px}}
