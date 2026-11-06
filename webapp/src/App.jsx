@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { BookOpen, Check, ChevronLeft, Copy, ExternalLink, Globe2, Heart, Languages, LogOut, MessageCircle, Mic, Plus, Send, Settings, Sparkles, Square, Trash2, UserPlus, Volume2, X, Search, Shield, Flag, UserCheck } from 'lucide-react'
 import { supabase, configured } from './supabase'
+import Materials from './Materials'
 import { dictionaries } from './i18n'
 
 const LANGUAGES = { ru:'Русский', en:'English', es:'Español', fr:'Français', de:'Deutsch', it:'Italiano', pt:'Português', ja:'日本語', ko:'한국어', zh:'中文' }
@@ -223,7 +224,7 @@ export default function App() {
   async function login(e) {
     e.preventDefault(); if (!email.trim()) return
     setBusy(true)
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.origin } })
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL } })
     setBusy(false); if (error) toast(explain(error)); else setEmailSent(true)
   }
 
@@ -468,6 +469,7 @@ export default function App() {
       <nav className="nav">
         <button className={tab === 'chat' ? 'selected' : ''} onClick={() => switchTab('chat')}><MessageCircle size={19}/>{t.chat}</button>
         <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><Search size={19}/>{t.discover}{incomingRequests.length > 0 && <span className="nav-count">{incomingRequests.length}</span>}</button>
+        <button className={tab === 'materials' ? 'selected' : ''} onClick={() => switchTab('materials')}>🎁 {locale === 'ru' ? 'От друзей' : 'Learning gifts'}</button>
         <button className={tab === 'words' ? 'selected' : ''} onClick={() => switchTab('words')}><BookOpen size={19}/>{t.words}<span className="nav-count">{phrases.length}</span></button>
         <button className={tab === 'practice' ? 'selected' : ''} onClick={() => switchTab('practice')}><Sparkles size={19}/>{t.practice}</button>
       </nav>
@@ -529,7 +531,8 @@ export default function App() {
           </article>)}</div>
         </>}
       </section>}
-      {tab === 'words' && <section className="inner-page"><div className="page-heading"><span className="page-icon"><BookOpen size={24}/></span><div><span className="eyebrow">LANGUAGE JOURNAL</span><h2>{t.words}</h2></div></div><p className="lead">{t.phraseTip}</p>
+      {tab === 'materials' && <Materials user={user} conversationId={activeId} contacts={visibleContacts} demo={demo} onSavePhrase={saveFromMessage} locale={locale}/>}
+       {tab === 'words' && <section className="inner-page"><div className="page-heading"><span className="page-icon"><BookOpen size={24}/></span><div><span className="eyebrow">LANGUAGE JOURNAL</span><h2>{t.words}</h2></div></div><p className="lead">{t.phraseTip}</p>
         <form className="phrase-form" onSubmit={addPhrase}><div className="input-group"><label>{t.phrase}</label><input placeholder="That's a great idea!" value={phraseDraft} maxLength={1000} onChange={e => setPhraseDraft(e.target.value)} required /></div><div className="input-group"><label>{t.translation}</label><input placeholder="Это отличная идея!" value={translationDraft} maxLength={1000} onChange={e => setTranslationDraft(e.target.value)} /></div><button className="primary" type="submit"><Plus size={18}/>{t.addWord}</button></form>
         <div className="phrase-list">{!phrases.length && <div className="no-data">{t.noWords}</div>}{phrases.map(p => <article className="phrase-card" key={p.id}><div><strong>{p.original}</strong><small>{p.translation || '—'}</small></div><div className="phrase-controls"><button className="icon-btn" onClick={() => translate(p.original)} title={t.translate}><ExternalLink size={17}/></button><button className="icon-btn" onClick={() => deletePhrase(p.id)} title={t.delete}><Trash2 size={17}/></button></div></article>)}</div>
       </section>}
@@ -559,7 +562,8 @@ export default function App() {
       {tab !== 'chat' && <nav className="mobile-bottom-nav" aria-label="Navigation">
         <button onClick={() => switchTab('chat')}><MessageCircle size={19} />{t.chat}</button>
         <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><Search size={19} />{t.findShort}</button>
-        <button className={tab === 'words' ? 'selected' : ''} onClick={() => switchTab('words')}><BookOpen size={19} />{t.words}</button>
+        <button className={tab === 'materials' ? 'selected' : ''} onClick={() => switchTab('materials')}>🎁 {locale==='ru'?'Материалы':'Gifts'}</button>
+         <button className={tab === 'words' ? 'selected' : ''} onClick={() => switchTab('words')}><BookOpen size={19} />{t.words}</button>
         <button className={tab === 'practice' ? 'selected' : ''} onClick={() => switchTab('practice')}><Sparkles size={19} />{t.practice}</button>
         <button className={tab === 'settings' ? 'selected' : ''} onClick={() => switchTab('settings')}><Settings size={19} />{t.settings}</button>
       </nav>}
