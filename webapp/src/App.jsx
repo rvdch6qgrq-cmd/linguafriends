@@ -438,8 +438,8 @@ export default function App() {
   const visibleContacts = contacts.filter(c => !blockedIds.includes(c.other_id))
   const selectedContact = visibleContacts.find(c => c.id === activeId)
   const visiblePartners = partners.filter(p => !blockedIds.includes(p.id) && !contacts.some(c => c.other_id === p.id) && (!demo || !filterLang || p.native_language === filterLang))
-  const incomingRequests = requests.filter(r => r.recipient_id === user.id && r.status === 'pending' && !blockedIds.includes(r.sender_id))
-  const outgoingRequests = requests.filter(r => r.sender_id === user.id && r.status === 'pending')
+  const incomingRequests = requests.filter(r => r.recipient_id === user?.id && r.status === 'pending' && !blockedIds.includes(r.sender_id))
+  const outgoingRequests = requests.filter(r => r.sender_id === user?.id && r.status === 'pending')
   const activeMessageList = demo ? messages.filter(m => m.conversation_id === activeId) : messages
   const flash = phrases.length ? phrases[flashIndex % phrases.length] : null
 
