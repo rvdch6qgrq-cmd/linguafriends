@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { BookOpen, Check, ChevronLeft, Copy, ExternalLink, Globe2, Heart, Languages, LogOut, MessageCircle, Mic, Plus, Send, Settings, Sparkles, Square, Trash2, UserPlus, Volume2, X, Search, Shield, Flag, UserCheck } from 'lucide-react'
 import { supabase, configured } from './supabase'
 import Materials from './Materials'
