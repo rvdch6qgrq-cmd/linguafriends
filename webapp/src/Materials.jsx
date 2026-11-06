@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { supabase } from './supabase'
 const examples=[
  {id:'demo-1',kind:'phrase',title:'Useful phrase',body:'Could you say that again, please?',translation:'Не мог(ла) бы ты повторить, пожалуйста?',sender_id:'example',created_at:new Date().toISOString()},
