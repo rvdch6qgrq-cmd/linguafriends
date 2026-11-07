@@ -178,11 +178,11 @@ export default function App() {
 
   useEffect(() => {
     if (!user || demo) return
-    supabase.from('profiles').select('id,display_name,invite_code').eq('id', user.id).single().then(({ data, error }) => {
+    supabase.from('profiles').select('id,display_name,invite_code,native_language,learning_language,intro').eq('id', user.id).single().then(({ data, error }) => {
       if (error) toast('Profile: ' + explain(error))
       else { setProfile(data); setNameDraft(data.display_name); setDiscoveryDraft({ native_language:data.native_language || 'ru', learning_language:data.learning_language || 'en', intro:data.intro || '', discoverable:!!data.discoverable, adult_confirmed:!!data.adult_confirmed }); setFilterLang(data.learning_language || 'en') }
     })
-    refreshContacts(); refreshPhrases(); refreshRequests(); refreshBlocks()
+    refreshContacts(); refreshPhrases()
   }, [user?.id, demo, refreshContacts, refreshPhrases])
 
   useEffect(() => {
@@ -210,12 +210,6 @@ export default function App() {
       .subscribe()
     return () => { alive = false; supabase.removeChannel(channel) }
   }, [user?.id, activeId, demo])
-
-  useEffect(() => {
-    if (tab !== 'discover') return
-    refreshPartners(filterLang)
-    refreshRequests()
-  }, [tab, filterLang, profile?.adult_confirmed, refreshRequests])
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }) }, [messages.length, activeId])
   useEffect(() => { if (demo) localStorage.setItem('lf-demo-phrases', JSON.stringify(phrases)) }, [phrases, demo])
@@ -319,10 +313,7 @@ export default function App() {
       native_language: discoveryDraft.native_language,
       learning_language: discoveryDraft.learning_language,
       intro: (discoveryDraft.intro || '').trim().slice(0,180),
-      discoverable: !!discoveryDraft.discoverable,
-      adult_confirmed: !!discoveryDraft.adult_confirmed
     }
-    if (updates.discoverable && !updates.adult_confirmed) { toast(t.mustBeAdult); return }
     if (demo) {
       setProfile(p => ({ ...p,...updates }))
       setFilterLang(updates.learning_language)
@@ -468,7 +459,7 @@ export default function App() {
       <div className="sidebar-profile"><div className="avatar own">{(profile?.display_name || 'U').charAt(0).toUpperCase()}</div><div className="who"><b>{profile?.display_name || user.email?.split('@')[0]}</b><small><span className="status-dot"/> {t.online}</small></div><button className="icon-btn" title={t.settings} onClick={() => switchTab('settings')}><Settings size={19}/></button></div>
       <nav className="nav">
         <button className={tab === 'chat' ? 'selected' : ''} onClick={() => switchTab('chat')}><MessageCircle size={19}/>{t.chat}</button>
-        <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><Search size={19}/>{t.discover}{incomingRequests.length > 0 && <span className="nav-count">{incomingRequests.length}</span>}</button>
+        <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><UserPlus size={19}/>{locale === 'ru' ? 'Пригласить друга' : 'Invite a friend'}</button>
         <button className={tab === 'materials' ? 'selected' : ''} onClick={() => switchTab('materials')}>🎁 {locale === 'ru' ? 'От друзей' : 'Learning gifts'}</button>
         <button className={tab === 'words' ? 'selected' : ''} onClick={() => switchTab('words')}><BookOpen size={19}/>{t.words}<span className="nav-count">{phrases.length}</span></button>
         <button className={tab === 'practice' ? 'selected' : ''} onClick={() => switchTab('practice')}><Sparkles size={19}/>{t.practice}</button>
@@ -512,24 +503,19 @@ export default function App() {
         </> : <div className="empty-chat"><div className="empty-art">💌</div><h2>{t.choose}</h2><p>{t.noChats}</p><button className="primary" onClick={() => { setShowInvite(true); setMobileChat(false) }}><UserPlus size={18}/>{t.inviteTitle}</button></div>}
       </>}
       {tab === 'discover' && <section className="inner-page discovery-page">
-        <div className="page-heading"><span className="page-icon"><Search size={24}/></span><div><span className="eyebrow">LANGUAGE EXCHANGE</span><h2>{t.discover}</h2></div></div>
-        <p className="lead">{t.discoverIntro}</p>
-        {!profile?.adult_confirmed ? <div className="notice-panel"><Shield size={21}/><div><strong>{t.adultRequired}</strong><p>{t.adultPrompt}</p><button className="small-primary" onClick={() => switchTab('settings')}>{t.openSettings}</button></div></div> : <>
-          <div className="filter-row"><label htmlFor="partner-language">{t.partnerSpeaks}</label><select id="partner-language" value={filterLang} onChange={e => setFilterLang(e.target.value)}><option value="">{t.allLanguages}</option>{Object.entries(LANGUAGES).map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select><button className="icon-btn lavender" onClick={() => { refreshPartners(filterLang); refreshRequests() }} title={t.refresh}><Search size={19}/></button></div>
-          <div className="privacy-line"><Shield size={16}/>{t.privateDiscovery}</div>
-          <h3 className="subheading">{t.incomingRequests}{incomingRequests.length > 0 ? ` (${incomingRequests.length})` : ''}</h3>
-          {!incomingRequests.length && <p className="muted">{t.noIncoming}</p>}
-          {incomingRequests.map(req => <article className="request-card" key={req.id}><div className="avatar person-avatar">{req.other_name[0]?.toUpperCase()}</div><div className="request-info"><strong>{req.other_name}</strong><small>{LANGUAGES[req.native_language] || req.native_language} → {LANGUAGES[req.learning_language] || req.learning_language}</small><span>{t.wantsToChat}</span></div><div className="request-actions"><button className="small-primary" onClick={() => answerRequest(req,true)} disabled={finderBusy}><UserCheck size={15}/>{t.accept}</button><button className="outline-btn" onClick={() => answerRequest(req,false)} disabled={finderBusy}>{t.decline}</button></div></article>)}
-          {!!outgoingRequests.length && <p className="muted request-note">{t.outgoingRequests}: {outgoingRequests.map(r => r.other_name).join(', ')}</p>}
-          <h3 className="subheading">{t.suggestedPartners}</h3>
-          {finderBusy && <p className="muted">{t.loading}</p>}
-          {!finderBusy && !visiblePartners.length && <div className="no-data">{t.noPartners}</div>}
-          <div className="partner-grid">{visiblePartners.map(person => <article className="partner-card" key={person.id}>
-            <div className="partner-top"><div className="avatar person-avatar">{person.display_name?.[0]?.toUpperCase()}</div><div><strong>{person.display_name}</strong><small>{t.speaks}: {LANGUAGES[person.native_language] || person.native_language}</small><small>{t.learns}: {LANGUAGES[person.learning_language] || person.learning_language}</small></div></div>
-            <p>{person.intro || t.noIntro}</p>
-            <div className="partner-actions"><button className="small-primary" disabled={finderBusy || requests.some(r => r.status === 'pending' && (r.sender_id === person.id || r.recipient_id === person.id))} onClick={() => requestPartner(person)}><UserPlus size={16}/>{requests.some(r => r.status === 'pending' && (r.sender_id === person.id || r.recipient_id === person.id)) ? t.pending : t.sendRequest}</button><button className="icon-btn" title={t.report} onClick={() => setReportTarget(person)}><Flag size={17}/></button><button className="icon-btn" title={t.block} onClick={() => blockPartner(person.id)}><Shield size={17}/></button></div>
-          </article>)}</div>
-        </>}
+        <div className="page-heading"><span className="page-icon"><UserPlus size={24}/></span><div><span className="eyebrow">PRIVATE FRIENDS</span><h2>{locale === 'ru' ? 'Пригласить друга' : 'Invite a friend'}</h2></div></div>
+        <p className="lead">{locale === 'ru' ? 'Здесь нет поиска незнакомых людей. Только ты и знакомые, с которыми обменяешься личным кодом.' : 'No public discovery. Connect with people you know by sharing your personal code.'}</p>
+        <div className="settings-card">
+          <label>{locale === 'ru' ? 'Твой код для друзей' : 'Your private friend code'}</label>
+          <button type="button" className="invite-code" onClick={copyInvite}><span>{profile?.invite_code || '—'}</span><Copy size={18}/></button>
+          <p className="muted">{locale === 'ru' ? 'Отправь код только тем, с кем хочешь переписываться. Они откроют LinguaFriends, войдут через электронную почту и введут его здесь.' : 'Share this code privately with friends who will join LinguaFriends by email.'}</p>
+          <form onSubmit={addFriend} className="invite-form">
+            <label>{locale === 'ru' ? 'Добавить друга по его коду' : "Enter a friend's code"}</label>
+            <input value={inviteInput} onChange={e => setInviteInput(e.target.value)} placeholder={t.codePlaceholder} maxLength={12} autoCapitalize="characters" required/>
+            <button type="submit" className="primary" disabled={busy || demo}>{locale === 'ru' ? 'Открыть чат' : 'Start conversation'}</button>
+          </form>
+          <p className="muted">{locale === 'ru' ? 'Переписка и учебные материалы видны только двум участникам соответствующего чата. Сквозное шифрование пока не реализовано.' : 'Chats and learning materials are private to participants; end-to-end encryption is not yet available.'}</p>
+        </div>
       </section>}
       {tab === 'materials' && <Materials user={user} conversationId={activeId} contacts={visibleContacts} demo={demo} onSavePhrase={saveFromMessage} locale={locale}/>}
        {tab === 'words' && <section className="inner-page"><div className="page-heading"><span className="page-icon"><BookOpen size={24}/></span><div><span className="eyebrow">LANGUAGE JOURNAL</span><h2>{t.words}</h2></div></div><p className="lead">{t.phraseTip}</p>
@@ -544,8 +530,8 @@ export default function App() {
         <label>{t.language}</label><div className="segmented"><button className={locale === 'ru' ? 'active' : ''} onClick={() => switchLocale('ru')}>Русский</button><button className={locale === 'en' ? 'active' : ''} onClick={() => switchLocale('en')}>English</button></div>
         <label>{t.inviteOwn}</label><button className="invite-code" onClick={copyInvite}><span>{profile?.invite_code || '—'}</span><Copy size={19}/></button>
         <div className="settings-divider"/>
-        <h3 className="subheading">{t.discoveryProfile}</h3>
-        <p className="muted">{t.discoveryPrivacy}</p>
+        <h3 className="subheading">{locale === 'ru' ? 'Мои языки' : 'My languages'}</h3>
+        <p className="muted">{locale === 'ru' ? 'Эти настройки нужны для изучения языка. Твоя анкета нигде публично не показывается.' : 'Language preferences for learning. Your profile is not publicly listed.'}</p>
         <form className="discovery-form" onSubmit={saveDiscovery}>
           <label htmlFor="native-lang">{t.native}</label>
           <select id="native-lang" value={discoveryDraft.native_language} onChange={e => setDiscoveryDraft(v => ({...v,native_language:e.target.value}))}>{Object.entries(LANGUAGES).map(([key,label]) => <option value={key} key={key}>{label}</option>)}</select>
@@ -553,15 +539,13 @@ export default function App() {
           <select id="learning-lang" value={discoveryDraft.learning_language} onChange={e => setDiscoveryDraft(v => ({...v,learning_language:e.target.value}))}>{Object.entries(LANGUAGES).map(([key,label]) => <option value={key} key={key}>{label}</option>)}</select>
           <label htmlFor="bio">{t.aboutMe}</label>
           <textarea id="bio" maxLength={180} rows={3} value={discoveryDraft.intro} onChange={e => setDiscoveryDraft(v => ({...v,intro:e.target.value}))} placeholder={t.bioPlaceholder}/>
-          <label className="check-label"><input type="checkbox" checked={discoveryDraft.adult_confirmed} onChange={e => setDiscoveryDraft(v => ({...v,adult_confirmed:e.target.checked,discoverable:e.target.checked?v.discoverable:false}))}/><span>{t.adultCheck}</span></label>
-          <label className="check-label"><input type="checkbox" checked={discoveryDraft.discoverable} disabled={!discoveryDraft.adult_confirmed} onChange={e => setDiscoveryDraft(v => ({...v,discoverable:e.target.checked}))}/><span>{t.visibleCheck}</span></label>
-          <button className="primary" disabled={busy} type="submit">{t.saveName}</button>
+          <button className="primary" disabled={busy} type="submit">{locale==='ru'?'Сохранить языки':'Save languages'}</button>
         </form>
         {demo ? <p className="muted">{t.demoInfo}</p> : <button className="logout" onClick={() => supabase.auth.signOut()}><LogOut size={17}/>{t.logout}</button>}
       </div></section>}
       {tab !== 'chat' && <nav className="mobile-bottom-nav" aria-label="Navigation">
         <button onClick={() => switchTab('chat')}><MessageCircle size={19} />{t.chat}</button>
-        <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><Search size={19} />{t.findShort}</button>
+        <button className={tab === 'discover' ? 'selected' : ''} onClick={() => switchTab('discover')}><UserPlus size={19} />{locale==='ru'?'Друзья':'Invite'}</button>
         <button className={tab === 'materials' ? 'selected' : ''} onClick={() => switchTab('materials')}>🎁 {locale==='ru'?'Материалы':'Gifts'}</button>
          <button className={tab === 'words' ? 'selected' : ''} onClick={() => switchTab('words')}><BookOpen size={19} />{t.words}</button>
         <button className={tab === 'practice' ? 'selected' : ''} onClick={() => switchTab('practice')}><Sparkles size={19} />{t.practice}</button>
