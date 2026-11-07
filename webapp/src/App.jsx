@@ -66,6 +66,10 @@ export default function App() {
   const [ready, setReady] = useState(demo)
   const [accessReady,setAccessReady] = useState(demo)
   const [accessAllowed,setAccessAllowed] = useState(demo)
+  const [isGroupOwner,setIsGroupOwner] = useState(false)
+  const [joinCode,setJoinCode] = useState('')
+  const [accessError,setAccessError] = useState('')
+  const [newFriendCode,setNewFriendCode] = useState('')
   const [user, setUser] = useState(demo ? { id: 'demo-me', email: 'demo@example.com' } : null)
   const [profile, setProfile] = useState(demo ? getSaved('lf-demo-profile-v2', DEMO_PROFILE) : null)
   const [contacts, setContacts] = useState(demo ? getSaved('lf-demo-contacts-v2', [{ id: 'demo-chat', other_id: 'demo-friend', other_name: 'Emma' }]) : [])
@@ -127,12 +131,38 @@ export default function App() {
     setAccessReady(false)
     supabase.rpc('user_access_status').then(({ data, error }) => {
       if (!alive) return
-      setAccessAllowed(!error && data === true)
+      const allowed = !error && data === true
+      setAccessAllowed(allowed)
       setAccessReady(true)
-      if (error) toast('Не удалось проверить приглашение: ' + explain(error))
+      if (error) setAccessError('Не удалось проверить приглашение: ' + explain(error))
+      if (allowed) {
+        supabase.rpc('group_owner_status').then(({data:owner,error:ownerError}) => {
+          if (alive && !ownerError) setIsGroupOwner(owner === true)
+        })
+      }
     })
     return () => { alive = false }
   }, [demo, user?.id])
+
+  async function activateInvitation(e) {
+    e.preventDefault()
+    if (!joinCode.trim()) return
+    setBusy(true)
+    setAccessError('')
+    const {error} = await supabase.rpc('redeem_invitation',{code:joinCode.trim()})
+    setBusy(false)
+    if (error) {setAccessError(explain(error));return}
+    window.location.reload()
+  }
+
+  async function createInvitation() {
+    if (!isGroupOwner || busy) return
+    setBusy(true)
+    const {data,error}=await supabase.rpc('create_friend_invitation')
+    setBusy(false)
+    if (error) {toast(explain(error));return}
+    setNewFriendCode(data||'')
+  }
 
   const refreshContacts = useCallback(async () => {
     if (demo || !user || !accessAllowed) return
@@ -472,11 +502,16 @@ export default function App() {
   if (!accessAllowed) return <div className="auth-page">
     <div className="auth-card">
       <div className="brand-mark"><Languages size={27}/></div>
-      <h1>{locale === 'ru' ? 'Только для приглашённых 💜' : 'Invite-only access 💜'}</h1>
-      <p>{locale === 'ru' ? 'Ты вошла по электронной почте, но этот адрес ещё не добавлен в список участников. Для безопасности чаты и материалы доступны только приглашённым друзьям.' : 'Your email is signed in, but the owner has not approved it yet. Chats and materials are restricted to invited members.'}</p>
+      <h1>{locale === 'ru' ? 'Только по приглашению 💜' : 'Invite-only access 💜'}</h1>
+      <p>{locale === 'ru' ? 'Вход по почте подтверждён. Введи одноразовый код приглашения, чтобы получить доступ к закрытым чатам и материалам.' : 'Your email is verified. Enter your one-time invitation code to access private chats and learning materials.'}</p>
+      <form className="auth-form" onSubmit={activateInvitation}>
+        <label htmlFor="join-code">{locale==='ru'?'Код приглашения в LinguaFriends':'LinguaFriends invitation code'}</label>
+        <input id="join-code" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} maxLength={32} minLength={32} autoComplete="off" autoCapitalize="characters" placeholder="32 символа" required/>
+        <button className="primary" disabled={busy}>{locale==='ru'?'Активировать приглашение':'Accept invitation'}</button>
+      </form>
+      {accessError && <p role="alert" className="error">{accessError}</p>}
       <p className="muted">{user.email}</p>
-      <button className="primary" type="button" onClick={() => window.location.reload()}>{locale === 'ru' ? 'Проверить доступ ещё раз' : 'Check access again'}</button>
-      <button className="logout" type="button" onClick={() => supabase.auth.signOut()}>{t.logout}</button>
+      <button className="logout" type="button" onClick={()=>supabase.auth.signOut()}>{t.logout}</button>
     </div>
   </div>
 
@@ -541,6 +576,16 @@ export default function App() {
             <input value={inviteInput} onChange={e => setInviteInput(e.target.value)} placeholder={t.codePlaceholder} maxLength={12} autoCapitalize="characters" required/>
             <button type="submit" className="primary" disabled={busy || demo}>{locale === 'ru' ? 'Открыть чат' : 'Start conversation'}</button>
           </form>
+          {isGroupOwner && <div className="gift-form">
+            <h3 className="subheading">{locale==='ru'?'Пригласить знакомого':'Invite a friend'}</h3>
+            <p className="muted">{locale==='ru'?'Создай одноразовый код и отправь его другу лично. После входа по почте друг введёт код, и ваш чат появится автоматически. Максимум три приглашённых друга.':'Generate a single-use access code and share it privately. Up to three friends can join.'}</p>
+            <button type="button" className="primary" disabled={busy} onClick={createInvitation}>{locale==='ru'?'Создать код приглашения':'Create an invitation code'}</button>
+            {newFriendCode && <>
+              <label>{locale==='ru'?'Код для друга — скопируй сейчас':'One-time code — copy now'}</label>
+              <button className="invite-code" type="button" onClick={async()=>{try{await navigator.clipboard.writeText(newFriendCode);toast('Код скопирован')}catch{toast(newFriendCode)}}}><span>{newFriendCode}</span><Copy size={18}/></button>
+              <p className="muted">{locale==='ru'?'Этот код действителен 14 дней, использовать его можно только один раз. Не публикуй его в открытом доступе.':'Valid for 14 days, one use only. Do not post publicly.'}</p>
+            </>}
+          </div>}
           <p className="muted">{locale === 'ru' ? 'Переписка и учебные материалы видны только двум участникам соответствующего чата. Сквозное шифрование пока не реализовано.' : 'Chats and learning materials are private to participants; end-to-end encryption is not yet available.'}</p>
         </div>
       </section>}
