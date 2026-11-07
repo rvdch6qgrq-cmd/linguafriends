@@ -64,6 +64,8 @@ export default function App() {
   const t = dictionaries[locale] || dictionaries.ru
   const demo = !configured
   const [ready, setReady] = useState(demo)
+  const [accessReady,setAccessReady] = useState(demo)
+  const [accessAllowed,setAccessAllowed] = useState(demo)
   const [user, setUser] = useState(demo ? { id: 'demo-me', email: 'demo@example.com' } : null)
   const [profile, setProfile] = useState(demo ? getSaved('lf-demo-profile-v2', DEMO_PROFILE) : null)
   const [contacts, setContacts] = useState(demo ? getSaved('lf-demo-contacts-v2', [{ id: 'demo-chat', other_id: 'demo-friend', other_name: 'Emma' }]) : [])
@@ -118,8 +120,22 @@ export default function App() {
     return () => { mounted = false; subscription.unsubscribe() }
   }, [demo])
 
+  useEffect(() => {
+    if (demo) return
+    if (!user) { setAccessAllowed(false); setAccessReady(true); return }
+    let alive = true
+    setAccessReady(false)
+    supabase.rpc('user_access_status').then(({ data, error }) => {
+      if (!alive) return
+      setAccessAllowed(!error && data === true)
+      setAccessReady(true)
+      if (error) toast('Не удалось проверить приглашение: ' + explain(error))
+    })
+    return () => { alive = false }
+  }, [demo, user?.id])
+
   const refreshContacts = useCallback(async () => {
-    if (demo || !user) return
+    if (demo || !user || !accessAllowed) return
     const { data: convs, error } = await supabase.from('conversations').select('id,user_a,user_b,created_at').order('created_at', { ascending: false })
     if (error) { toast(explain(error)); return }
     const ids = [...new Set((convs || []).map(c => c.user_a === user.id ? c.user_b : c.user_a))]
@@ -134,7 +150,7 @@ export default function App() {
       const other_id = c.user_a === user.id ? c.user_b : c.user_a
       return { ...c, other_id, other_name: names[other_id] || 'Friend' }
     }))
-  }, [demo, user])
+  }, [demo, user, accessAllowed])
 
   const refreshRequests = useCallback(async () => {
     if (demo || !user) return
@@ -171,30 +187,30 @@ export default function App() {
   }, [demo, user?.id, profile?.adult_confirmed, filterLang])
 
   const refreshPhrases = useCallback(async () => {
-    if (demo || !user) return
+    if (demo || !user || !accessAllowed) return
     const { data, error } = await supabase.from('phrases').select('id,original,translation,created_at').order('created_at', { ascending: false }).limit(300)
     if (error) toast(explain(error)); else setPhrases(data || [])
   }, [demo, user])
 
   useEffect(() => {
-    if (!user || demo) return
+    if (!user || demo || !accessAllowed) return
     supabase.from('profiles').select('id,display_name,invite_code,native_language,learning_language,intro').eq('id', user.id).single().then(({ data, error }) => {
       if (error) toast('Profile: ' + explain(error))
       else { setProfile(data); setNameDraft(data.display_name); setDiscoveryDraft({ native_language:data.native_language || 'ru', learning_language:data.learning_language || 'en', intro:data.intro || '', discoverable:!!data.discoverable, adult_confirmed:!!data.adult_confirmed }); setFilterLang(data.learning_language || 'en') }
     })
     refreshContacts(); refreshPhrases()
-  }, [user?.id, demo, refreshContacts, refreshPhrases])
+  }, [user?.id, demo, accessAllowed, refreshContacts, refreshPhrases])
 
   useEffect(() => {
-    if (!user || demo) return
+    if (!user || demo || !accessAllowed) return
     const channel = supabase.channel('contact-changes-' + user.id)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversations' }, refreshContacts)
       .subscribe()
     return () => { supabase.removeChannel(channel) }
-  }, [user?.id, demo, refreshContacts])
+  }, [user?.id, demo, accessAllowed, refreshContacts])
 
   useEffect(() => {
-    if (!user || demo || !activeId) return
+    if (!user || demo || !accessAllowed || !activeId) return
     let alive = true
     const load = async () => {
       const { data, error } = await supabase.from('messages')
@@ -209,7 +225,7 @@ export default function App() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${activeId}` }, load)
       .subscribe()
     return () => { alive = false; supabase.removeChannel(channel) }
-  }, [user?.id, activeId, demo])
+  }, [user?.id, activeId, demo, accessAllowed])
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }) }, [messages.length, activeId])
   useEffect(() => { if (demo) localStorage.setItem('lf-demo-phrases', JSON.stringify(phrases)) }, [phrases, demo])
@@ -434,7 +450,7 @@ export default function App() {
   const activeMessageList = demo ? messages.filter(m => m.conversation_id === activeId) : messages
   const flash = phrases.length ? phrases[flashIndex % phrases.length] : null
 
-  if (!ready) return <div className="full-center"><div className="spinner" />{t.loading}</div>
+  if (!ready || (user && !accessReady)) return <div className="full-center"><div className="spinner" />{t.loading}</div>
 
   if (!user) return <div className="auth-page">
     <div className="auth-card">
@@ -450,6 +466,17 @@ export default function App() {
       </form>
       {emailSent && <p className="success">✓ {t.sent}</p>}
       <div className="locale-switch"><button onClick={() => switchLocale('ru')} className={locale === 'ru' ? 'active' : ''}>RU</button><button onClick={() => switchLocale('en')} className={locale === 'en' ? 'active' : ''}>EN</button></div>
+    </div>
+  </div>
+
+  if (!accessAllowed) return <div className="auth-page">
+    <div className="auth-card">
+      <div className="brand-mark"><Languages size={27}/></div>
+      <h1>{locale === 'ru' ? 'Только для приглашённых 💜' : 'Invite-only access 💜'}</h1>
+      <p>{locale === 'ru' ? 'Ты вошла по электронной почте, но этот адрес ещё не добавлен в список участников. Для безопасности чаты и материалы доступны только приглашённым друзьям.' : 'Your email is signed in, but the owner has not approved it yet. Chats and materials are restricted to invited members.'}</p>
+      <p className="muted">{user.email}</p>
+      <button className="primary" type="button" onClick={() => window.location.reload()}>{locale === 'ru' ? 'Проверить доступ ещё раз' : 'Check access again'}</button>
+      <button className="logout" type="button" onClick={() => supabase.auth.signOut()}>{t.logout}</button>
     </div>
   </div>
 
