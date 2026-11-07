@@ -190,7 +190,7 @@ export default function App() {
     if (demo || !user || !accessAllowed) return
     const { data, error } = await supabase.from('phrases').select('id,original,translation,created_at').order('created_at', { ascending: false }).limit(300)
     if (error) toast(explain(error)); else setPhrases(data || [])
-  }, [demo, user])
+  }, [demo, user, accessAllowed])
 
   useEffect(() => {
     if (!user || demo || !accessAllowed) return
